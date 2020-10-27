@@ -1,3 +1,4 @@
+import com.sundogsoftware.spark.MovieRecommendationsALSDataset.Rating
 import org.apache.spark._
 import org.apache.log4j._
 import org.apache.spark.sql.SparkSession
@@ -9,8 +10,6 @@ object MovieRecommendationPro{
   // case class for movie dataset
   case class Movies(movieId: Int, movieTitle: String)
 
-
-  //hellooo
   // case class for ratings
   case class Ratings(userID: Int, movieID: Int, rating: Float)
 
@@ -36,6 +35,22 @@ object MovieRecommendationPro{
 
     import spark.implicits._
 
+    val movieData = spark.read
+      .option("sep","|")
+      .option("charset", "ISO-8859-1")
+      .schema(schemaMovie)
+      .csv("data/ml-100k/u.item")
+      .as[Movies]
+
+    val movieDataset = movieData.collect()
+
+    val ratings = spark.read
+      .option("sep", "\t")
+      .schema(moviesSchema)
+      .csv("data/ml-100k/u.data")
+      .as[Rating]
+
+    // Now training our ML model
 
 
 
