@@ -12,6 +12,13 @@ object MovieRecommendationPro{
   // case class for ratings
   case class Ratings(userID: Int, movieID: Int, rating: Float)
 
+  def getMovieName(movieData:Array[Movies],movieId:Int):String{
+
+  val result = movieData.filter(._movieId==movieId)
+  result.movieTitle
+
+  }
+
   def main(args: Array[String]): Unit = {
 
     Logger.getLogger("org").setLevel(Level.ERROR)
@@ -66,6 +73,12 @@ object MovieRecommendationPro{
     val predictions = model.recommendForUserSubset(data,5)
 
     // Displaying predictions
+
+    for (res <- predictions){
+
+
+
+    }
 
 
 
