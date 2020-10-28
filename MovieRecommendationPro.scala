@@ -1,9 +1,8 @@
-import com.sundogsoftware.spark.MovieRecommendationsALSDataset.Rating
 import org.apache.spark._
 import org.apache.log4j._
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{Row,SparkSession}
 import org.apache.spark.sql.types.{FloatType, IntegerType, LongType, StringType, StructType}
-import org.sparkproject.dmg.pmml.True
+import org.apache.spark.ml.recommendation._
 
 object MovieRecommendationPro{
 
@@ -50,7 +49,24 @@ object MovieRecommendationPro{
       .csv("data/ml-100k/u.data")
       .as[Rating]
 
-    // Now training our ML model
+    // Now creating an ALS prediction model
+
+    val als = new ALS()
+      .setMaxIter(5)
+      .setRegParam(0.1)
+      .setUserCol("userID")
+      .setItemCol("movieID")
+      .setRatingCol("rating")
+
+    // fitting model with ratings data
+    val model = als.fit(ratings)
+
+    val userID : Int = args.(22).toInt
+    val data = seq(userID).toDF()
+    val predictions = model.recommendForUserSubset(data,5)
+
+    // Displaying predictions
+
 
 
 
