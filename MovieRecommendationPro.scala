@@ -12,27 +12,33 @@ object MovieRecommendationPro{
   // case class for ratings
   case class Ratings(userID: Int, movieID: Int, rating: Float)
 
+  // function to get movie names using movie ids from movies dataframe
   def getMovieName(movieData:Array[Movies],movieId:Int):String{
 
   val result = movieData.filter(._movieId==movieId)
+  // returns the movie title
   result.movieTitle
 
   }
 
+  // main function
   def main(args: Array[String]): Unit = {
 
     Logger.getLogger("org").setLevel(Level.ERROR)
 
+    // building a new spark session
     val spark =SparkSession
       .builder()
       .appName("MovieRecommendationPro")
       .master("local[*]")
       .getOrCreate()
 
+    // defining schema(structure) for movies dataframe
     val schemaMovie = new StructType()
       .add("movieId",IntegerType,nullable = true)
       .add("movieTitle", StringType, nullable = true)
 
+    // defining schema(structure) for ratings dataframe
     val ratingSchema = new StructType()
       .add("userID",IntegerType,nullable = true)
       .add("movieId",IntegerType,nullable = true)
@@ -75,7 +81,15 @@ object MovieRecommendationPro{
     // Displaying predictions
 
     for (res <- predictions){
+      val user = res.(1)
+      val temp = user.asInstanceOf[Mutable.WrappedArray[Row]]
+      for (ret <- temp){
+        val movie = ret.getAs[Int](0)
+        val ratingsval = ret.getAs[Float](1)
+        val movieName = getMovieName(movieDataset,movie)
+      }
 
+      
 
 
     }
