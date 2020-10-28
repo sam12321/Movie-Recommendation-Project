@@ -1,8 +1,11 @@
+
+
 import org.apache.spark._
 import org.apache.log4j._
+import org.apache.spark.ml.recommendation._
 import org.apache.spark.sql.{Row,SparkSession}
 import org.apache.spark.sql.types.{FloatType, IntegerType, LongType, StringType, StructType}
-import org.apache.spark.ml.recommendation._
+
 
 object MovieRecommendationPro{
 
@@ -13,9 +16,9 @@ object MovieRecommendationPro{
   case class Ratings(userID: Int, movieID: Int, rating: Float)
 
   // function to get movie names using movie ids from movies dataframe
-  def getMovieName(movieData:Array[Movies],movieId:Int):String{
+  def getMovieName(movieData:Array[Movies],movieId:Int): String ={
 
-  val result = movieData.filter(._movieId==movieId)
+  val result = movieData.filter(._movieId==movieId)(0)
   // returns the movie title
   result.movieTitle
 
@@ -42,7 +45,7 @@ object MovieRecommendationPro{
     val ratingSchema = new StructType()
       .add("userID",IntegerType,nullable = true)
       .add("movieId",IntegerType,nullable = true)
-      .add("rating",FloatType,nullable = true)
+      .add("rating",IntegerType,nullable = true)
       .add("timeStamp",LongType,nullable = true)
 
     import spark.implicits._
@@ -74,15 +77,15 @@ object MovieRecommendationPro{
     // fitting model with ratings data
     val model = als.fit(ratings)
 
-    val userID : Int = args.(1).toInt
-    val data = seq(userID).toDF()
+    val userID : Int = args(0).toInt
+    val data = Seq(userID).toDF("userID")
     val predictions = model.recommendForUserSubset(data,5)
 
     // Displaying predictions
 
     for (res <- predictions){
-      val user = res.(1)
-      val temp = user.asInstanceOf[Mutable.WrappedArray[Row]]
+      val user = res(1)
+      val temp = user.asInstanceOf[mutable.WrappedArray[Row]]
       for (ret <- temp){
         val movie = ret.getAs[Int](0)
         val ratings = ret.getAs[Float](1)
@@ -90,12 +93,9 @@ object MovieRecommendationPro{
         println(movieName,ratings)
       }
 
-      spark.stop()
-
-
     }
 
-
+    spark.stop()
 
 
   }
