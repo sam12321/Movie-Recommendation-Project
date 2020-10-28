@@ -58,9 +58,9 @@ object MovieRecommendationPro{
 
     val ratings = spark.read
       .option("sep", "\t")
-      .schema(moviesSchema)
+      .schema(ratingSchema)
       .csv("data/ml-100k/u.data")
-      .as[Rating]
+      .as[Ratings]
 
     // Now creating an ALS prediction model
 
@@ -74,7 +74,7 @@ object MovieRecommendationPro{
     // fitting model with ratings data
     val model = als.fit(ratings)
 
-    val userID : Int = args.(22).toInt
+    val userID : Int = args.(1).toInt
     val data = seq(userID).toDF()
     val predictions = model.recommendForUserSubset(data,5)
 
@@ -85,11 +85,12 @@ object MovieRecommendationPro{
       val temp = user.asInstanceOf[Mutable.WrappedArray[Row]]
       for (ret <- temp){
         val movie = ret.getAs[Int](0)
-        val ratingsval = ret.getAs[Float](1)
+        val ratings = ret.getAs[Float](1)
         val movieName = getMovieName(movieDataset,movie)
+        println(movieName,ratings)
       }
 
-      
+      spark.stop()
 
 
     }
