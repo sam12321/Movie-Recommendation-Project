@@ -3,8 +3,10 @@
 import org.apache.spark._
 import org.apache.log4j._
 import org.apache.spark.ml.recommendation._
-import org.apache.spark.sql.{Row,SparkSession}
+import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.types.{FloatType, IntegerType, LongType, StringType, StructType}
+
+import scala.collection.mutable
 
 
 object MovieRecommendationPro{
@@ -18,9 +20,9 @@ object MovieRecommendationPro{
   // function to get movie names using movie ids from movies dataframe
   def getMovieName(movieData:Array[Movies],movieId:Int): String ={
 
-  val result = movieData.filter(._movieId==movieId)(0)
-  // returns the movie title
-  result.movieTitle
+    val result = movieData.filter(_.movieId==movieId)(0)
+    // returns the movie title
+    result.movieTitle
 
   }
 
@@ -31,11 +33,13 @@ object MovieRecommendationPro{
 
     // building a new spark session
     val spark =SparkSession
-      .builder()
+      .builder
       .appName("MovieRecommendationPro")
       .master("local[*]")
       .getOrCreate()
 
+
+    println("Loading movie names...")
     // defining schema(structure) for movies dataframe
     val schemaMovie = new StructType()
       .add("movieId",IntegerType,nullable = true)
@@ -44,7 +48,7 @@ object MovieRecommendationPro{
     // defining schema(structure) for ratings dataframe
     val ratingSchema = new StructType()
       .add("userID",IntegerType,nullable = true)
-      .add("movieId",IntegerType,nullable = true)
+      .add("movieID",IntegerType,nullable = true)
       .add("rating",IntegerType,nullable = true)
       .add("timeStamp",LongType,nullable = true)
 
@@ -67,9 +71,10 @@ object MovieRecommendationPro{
 
     // Now creating an ALS prediction model
 
+    println("\nTraining recommendation model...")
     val als = new ALS()
       .setMaxIter(5)
-      .setRegParam(0.1)
+      .setRegParam(0.01)
       .setUserCol("userID")
       .setItemCol("movieID")
       .setRatingCol("rating")
@@ -83,20 +88,20 @@ object MovieRecommendationPro{
 
     // Displaying predictions
 
+    println("\nTop 5 recommendations for user ID " + userID + ":")
     for (res <- predictions){
       val user = res(1)
       val temp = user.asInstanceOf[mutable.WrappedArray[Row]]
       for (ret <- temp){
         val movie = ret.getAs[Int](0)
-        val ratings = ret.getAs[Float](1)
+        val rating = ret.getAs[Float](1)
         val movieName = getMovieName(movieDataset,movie)
-        println(movieName,ratings)
+        println(movieName,rating)
       }
 
     }
 
     spark.stop()
-
 
   }
 
